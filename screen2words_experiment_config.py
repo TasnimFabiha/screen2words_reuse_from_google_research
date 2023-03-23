@@ -71,9 +71,9 @@ _BASE_CONFIG = {
     'eval_buffer_size':
         100,
     'embedding_file': './word_embedding/glove.6B.300d.txt',
-    'word_vocab_path': 'TO_BE_ADDED',
-    'eval_files': 'TO_BE_ADDED',
-    'train_files': 'TO_BE_ADDED',
+    'word_vocab_path': './tmp/word_vocab.txt-00000-of-00001',
+    'eval_files': './tmp/tfexample_new.txt-00000-of-00001',
+    'train_files': './tmp/tfexample_new.txt-00000-of-00001',
     'screen_embedding_feature': ['text', 'type', 'pos', 'click', 'dom'],
     'use_app_description':
         True,
@@ -135,9 +135,9 @@ _DEBUG_CONFIG = {
     'phrase_vocab_size':
         1000,
     'embedding_file': './word_embedding/glove.6B.300d.txt',
-    'word_vocab_path': './tmp_widget/word_vocab_from_create_vocab.txt',
-    'eval_files': 'TO_BE_ADDED',
-    'train_files': 'TO_BE_ADDED',
+    'word_vocab_path': './tmp/word_vocab.txt-00000-of-00001',
+    'eval_files': './tmp/tfexample_new.txt-00000-of-00001',
+    'train_files': './tmp/tfexample_new.txt-00000-of-00001',
     'use_app_description':
         True,
 }

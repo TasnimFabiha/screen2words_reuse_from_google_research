@@ -65,8 +65,8 @@ def create_hparams(experiment):
   hparams['eval_steps'] = 100
   hparams['caption_optimizer'] = 't2t'
   hparams['clip_norm'] = 5.0
-  hparams['train_files'] = ''
-  hparams['eval_files'] = ''
+  hparams['train_files'] = './tmp/tfexample_new.txt-00000-of-00001'
+  hparams['eval_files'] = './tmp/tfexample_new.txt-00000-of-00001'
   hparams['train_buffer_size'] = 2000
   hparams['eval_buffer_size'] = 500
   hparams['train_pixel_encoder'] = True
@@ -705,6 +705,7 @@ class ScreenCaptionModel(tf.keras.Model):
         self._word_vocab.append(line.strip())
 
   def call(self, inputs, training):
+    print("call method inputs:", inputs)
     features, targets = inputs
     input_shape = tf.shape(features['obj_type'])
     encoder_outputs, encoder_attn_bias = self._encoder(features, training)
@@ -732,9 +733,13 @@ class ScreenCaptionModel(tf.keras.Model):
 
   def train_step(self, data):
     targets = self.compute_targets(data)
+    #print("Targgets:",targets)
+    #print("data:",data)
     with tf.GradientTape() as tape:
       train_metrics = ['loss', 'caption_loss', 'global_norm']
+      temp = [data, targets]
       caption_logits, _ = self([data, targets], training=True)
+      #caption_logits, _ = self([data], training=True)
 
       total_loss = 0
       caption_loss = self._caption_loss(targets, caption_logits)
@@ -881,9 +886,9 @@ class ScreenCaptionModel(tf.keras.Model):
     target_phrase = tf.reshape(target_phrase,
                                [batch_size, self._MAX_DECODE_LENGTH])
 
-    if self._hparams['use_decoding_for_classification']:
-      eos = tf.ones(shape=tf.shape(target_phrase), dtype=tf.int32)
-      target_phrase = tf.concat([target_phrase, eos], axis=-1)
+    # if self._hparams['use_decoding_for_classification']:
+    #   eos = tf.ones(shape=tf.shape(target_phrase), dtype=tf.int32)
+    #   target_phrase = tf.concat([target_phrase, eos], axis=-1)
 
     return target_phrase
 

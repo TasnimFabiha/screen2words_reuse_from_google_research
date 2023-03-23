@@ -115,7 +115,7 @@ def _adjust_bounds(width, height, bounds):
   ]
 
 
-def _extract_pixels(image, bounds):
+def _extract_pixels(image, bounds, node, image_path):
   """Extracts image pixels and resizes it to 64*64*3.
 
   Args:
@@ -131,6 +131,9 @@ def _extract_pixels(image, bounds):
     pixels = resized.getdata()
   except Exception as e:  # pylint: disable=broad-except
     logging.warning('Error: %s', e)
+    logging.warning('Trace Image Path: %s', image_path)
+    logging.warning('Trace node[bounds]: %s', node)
+    logging.warning('Trace calculated bounds: %s', bounds)
     # Use all zero for image if exception.
     return [0] * (64 * 64 * 3)
   flatten = []
@@ -377,7 +380,7 @@ def _get_features_from_all_nodes(all_nodes, image, image_path):
   for node in all_nodes:
     bounds = _adjust_bounds(image_width, image_height, node['bounds'])
     #fabiha- I added node and image path
-    pixels = _extract_pixels(image, bounds, node, image_path)
+    pixels = _extract_pixels(image, bounds, node['bounds'], image_path)
     all_features['obj_dom_pos'] += [
         node['_caption_depth'], node['_caption_preorder_id'],
         node['_caption_postorder_id']
