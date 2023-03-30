@@ -37,14 +37,14 @@ flags.DEFINE_string(
     'experiment', 'debug',
     'Experiment name defined in screen2words_experiment_config.py.')
 
-flags.DEFINE_string('model_dir', './keras/model', 'Training directory (this will be filled'
+flags.DEFINE_string('model_dir', './keras_single/model', 'Training directory (this will be filled'
                     'automatically).')
 
-flags.DEFINE_string('ckpt_filepath', './keras/ckpt',
+flags.DEFINE_string('ckpt_filepath', './keras_single/ckpt',
                     'Training directory (this will be filled'
                     'automatically).')
 
-flags.DEFINE_string('backup_dir', './keras/bak', 'For restoring training.')
+flags.DEFINE_string('backup_dir', './keras_single/bak', 'For restoring training.')
 
 FLAGS = flags.FLAGS
 
@@ -65,8 +65,8 @@ def create_hparams(experiment):
   hparams['eval_steps'] = 100
   hparams['caption_optimizer'] = 't2t'
   hparams['clip_norm'] = 5.0
-  hparams['train_files'] = './tmp/tfexample_new.txt-00000-of-00001'
-  hparams['eval_files'] = './tmp/tfexample_new.txt-00000-of-00001'
+  hparams['train_files'] = './tmp_single/tfexample.txt-00000-of-00001'
+  hparams['eval_files'] = './tmp_single/tfexample.txt-00000-of-00001'
   hparams['train_buffer_size'] = 2000
   hparams['eval_buffer_size'] = 500
   hparams['train_pixel_encoder'] = True
@@ -75,7 +75,7 @@ def create_hparams(experiment):
 
   # Embedding parameters.
   hparams['embedding_file'] = './word_embedding/glove.6B.300d.txt'
-  hparams['word_vocab_path'] = './tmp_widget/word_vocab_from_create_vocab.txt'
+  hparams['word_vocab_path'] = './tmp_widget_single/word_vocab_from_create_vocab.txt'
   hparams['glove_trainable'] = True
   hparams['vocab_size'] = 10000
 
@@ -669,6 +669,7 @@ class ScreenCaptionModel(tf.keras.Model):
     super(ScreenCaptionModel, self).__init__()
     self._hparams = hparams
     with tf.name_scope('captioning'):
+      # print("Entering into word Embedding layer...")
       self._word_embedding_layer = EmbeddingLayer(
           name='word',
           hidden_dim=self._hparams['hidden_size'],
@@ -676,10 +677,14 @@ class ScreenCaptionModel(tf.keras.Model):
           vocab_size=self._hparams['vocab_size'],
           embedding_dim=self._hparams['hidden_size'],  # not used
           trainable=self._hparams['glove_trainable'])
+      
+      # print("Entering into position Embedding layer...")
       self._position_embedding_layer = layers.RelativePositionEmbedding(
           self._hparams['hidden_size'])
 
+      # print("Entering into Encoder  layer...")
       self._encoder = EncoderLayer(self._hparams, self._word_embedding_layer)
+      # print("Entering into Decoder  layer...")
       self._decoder = DecoderLayer(self._hparams, self._word_embedding_layer,
                                    self._position_embedding_layer)
       self._word_layer = tf.keras.layers.Dense(
@@ -705,7 +710,7 @@ class ScreenCaptionModel(tf.keras.Model):
         self._word_vocab.append(line.strip())
 
   def call(self, inputs, training):
-    print("call method inputs:", inputs)
+    # print("call method inputs:", inputs)
     features, targets = inputs
     input_shape = tf.shape(features['obj_type'])
     encoder_outputs, encoder_attn_bias = self._encoder(features, training)
@@ -737,9 +742,9 @@ class ScreenCaptionModel(tf.keras.Model):
     #print("data:",data)
     with tf.GradientTape() as tape:
       train_metrics = ['loss', 'caption_loss', 'global_norm']
-      temp = [data, targets]
-      caption_logits, _ = self([data, targets], training=True)
-      #caption_logits, _ = self([data], training=True)
+      #caption_logits, _ = self([data, targets], training=True)
+      caption_logits = self([data, targets], training=True)
+      #caption_logits, _ = self.call([data], training=True)
 
       total_loss = 0
       caption_loss = self._caption_loss(targets, caption_logits)
